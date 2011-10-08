@@ -1,8 +1,12 @@
-# $Id: 20textarea.t,v 1.1 2005/10/19 14:02:43 pmh Exp $
+#!/usr/bin/perl
 
-use Test::More no_plan;
-use Test::XML;
+use blib;
+use lib 't/lib';
 use strict;
+use warnings;
+use Test::More tests => 32;
+use Test::NoWarnings;
+use Test::XML::Canon;
 
 my $Form;
 BEGIN{ use_ok($Form='HTML::StickyForm'); }
@@ -45,9 +49,13 @@ for(
   my($args,$name,$expect_empty,$expect_full)=@$_;
 
   my $out;
-  is_xml($out=$empty->textarea(%$args),$expect_empty,"$name (empty)")
+  is_xml_canon($out=$empty->textarea($args),$expect_empty,"$name (empty, ref)")
     or diag $out;
-  is_xml($out=$full->textarea(%$args),$expect_full,"$name (full)")
+  is_xml_canon($out=$empty->textarea(%$args),$expect_empty,"$name (empty, flat)")
+    or diag $out;
+  is_xml_canon($out=$full->textarea($args),$expect_full,"$name (full, ref)")
+    or diag $out;
+  is_xml_canon($out=$full->textarea(%$args),$expect_full,"$name (full, flat)")
     or diag $out;
 }
 

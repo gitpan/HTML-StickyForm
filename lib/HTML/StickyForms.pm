@@ -1,27 +1,10 @@
-################################################################################
-#
-#   File name: StickyForms.pm
-#   Project: HTML::StickyForms
-#
-#   Author: Peter Haworth
-#   Date created: 06/06/2000
-#
-#   $Id: StickyForms.pm,v 1.3 2005/10/19 16:24:20 pmh Exp $
-#
-#   Copyright Peter Haworth 2001
-#   You may use and distribute this module according to the same terms
-#   that Perl is distributed under.
-#
-################################################################################
 
 package HTML::StickyForms;
+BEGIN {
+  $HTML::StickyForms::VERSION = '0.07_01';
+}
 use strict;
-use vars qw(
-  $VERSION
-);
-
-# Use the same version as HTML::StickyForm
-$VERSION=0.07;
+use warnings;
 
 
 ################################################################################
@@ -630,7 +613,7 @@ Overrides the form object's C<values_as_labels> attribute.
 
 =head1 AUTHOR
 
-Copyright (C) Institute of Physics Publishing 2000-2005
+Copyright (C) IOP Publishing Ltd 2000-2011
 
 	Peter Haworth <pmh@edison.ioppublishing.com>
 

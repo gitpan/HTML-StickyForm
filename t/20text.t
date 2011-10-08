@@ -1,8 +1,12 @@
-# $Id: 20text.t,v 1.1 2005/10/19 14:02:43 pmh Exp $
+#!/usr/bin/perl
 
-use Test::More no_plan;
-use Test::XML;
+use blib;
+use lib 't/lib';
 use strict;
+use warnings;
+use Test::More tests => 36;
+use Test::NoWarnings;
+use Test::XML::Canon;
 
 my $Form;
 BEGIN{ use_ok($Form='HTML::StickyForm'); }
@@ -49,9 +53,13 @@ for(
   my($args,$name,$expect_empty,$expect_full)=@$_;
 
   my $out;
-  is_xml($out=$empty->text(%$args),$expect_empty,"$name (empty)")
+  is_xml_canon($out=$empty->text($args),$expect_empty,"$name (empty, ref)")
     or diag $out;
-  is_xml($out=$full->text(%$args),$expect_full,"$name (full)")
+  is_xml_canon($out=$empty->text(%$args),$expect_empty,"$name (empty, flat)")
+    or diag $out;
+  is_xml_canon($out=$full->text($args),$expect_full,"$name (full, ref)")
+    or diag $out;
+  is_xml_canon($out=$full->text(%$args),$expect_full,"$name (full, flat)")
     or diag $out;
 }
 

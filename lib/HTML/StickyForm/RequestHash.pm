@@ -1,4 +1,3 @@
-# $Id: RequestHash.pm,v 1.1 2005/10/19 13:54:20 pmh Exp $
 
 =head1 NAME
 
@@ -25,11 +24,12 @@ available, but it is not appropriate to use L<CGI> or L<Apache::Request>.
 =cut
 
 package HTML::StickyForm::RequestHash;
+BEGIN {
+  $HTML::StickyForm::RequestHash::VERSION = '0.07_01';
+}
 
 use strict;
-use vars qw($VERSION);
-
-$VERSION=0.01;
+use warnings;
 
 =head1 CLASS METHODS
 
@@ -101,7 +101,7 @@ sub param{
 
 =head1 AUTHOR
 
-Copyright (C) Institute of Physics Publishing 2005
+Copyright (C) Institute of Physics Publishing 2005-2011
 
 	Peter Haworth <pmh@edison.ioppublishing.com>
 

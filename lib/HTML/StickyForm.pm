@@ -1,9 +1,7 @@
-# $Id: StickyForm.pm,v 1.3 2005/10/19 15:44:21 pmh Exp $
 
 =head1 NAME
 
-HTML::StickyForm - Lightweight general-purpose HTML form generation,
-with sticky values
+HTML::StickyForm - Lightweight general-purpose HTML form generation, with sticky values
 
 =head1 SYNOPSIS
 
@@ -28,19 +26,22 @@ with sticky values
      "<br />Text area:",
      $f->textarea(name => 'field2', cols => 60, rows => 5, default => 'stuff'),
 
+     "<br />Single radio button:",
+     $f->radio(name => 'field3', value => 'xyz', checked => 1),
+
      "<br />Radio buttons:",
-     $f->radio_group(name => 'field3', values => [1,2,3],
+     $f->radio_group(name => 'field4', values => [1,2,3],
        labels => { 1=>'one', 2=>'two', 3=>'three' }, default => 2),
 
      "<br />Single checkbox:",
-     $f->checkbox(name => 'field4', value => 'xyz', checked => 1),
+     $f->checkbox(name => 'field5', value => 'xyz', checked => 1),
 
      "<br />Checkbox group:",
-     $f->checkbox_group(name => 'field5', values => [4,5,6],
+     $f->checkbox_group(name => 'field6', values => [4,5,6],
        labels => { 4=>'four', 5=>'five', 6=>'six' }, default => [5,6]),
 
      "<br />Password field:",
-     $f->password(name => 'field6', size => 20),
+     $f->password(name => 'field7', size => 20),
 
      '<br />",
      $f->submit(value => ' Hit me! '),
@@ -70,12 +71,11 @@ consistent, and to keep the code size down to a minimum.
 
 
 package HTML::StickyForm;
+BEGIN {
+  $HTML::StickyForm::VERSION = '0.07_01';
+}
 use strict;
-use vars qw(
-  $VERSION
-);
-
-$VERSION=0.07;
+use warnings;
 
 =head1 CLASS METHODS
 
@@ -284,11 +284,11 @@ C<method>: Defaults to C<GET>
 =cut
 
 sub form_start{
-  my($self,%args)=@_;
-  $args{method}='GET' unless exists $args{method};
+  my($self,$args)=&_args;
+  $args->{method}='GET' unless exists $args->{method};
 
   my $field='<form';
-  while(my($name,$val)=each %args){
+  while(my($name,$val)=each %$args){
     _escape($name);
     _escape($val);
     $field.=qq( $name="$val");
@@ -305,8 +305,9 @@ As form_start(), but the C<enctype> argument defaults to C<multipart/form-data>.
 =cut
 
 sub form_start_multipart{
-  my $self=shift;
-  $self->form_start(enctype => 'mutipart/form-data',@_);
+  my($self,$args)=&_args;
+  $args->{enctype}||='mutipart/form-data';
+  $self->form_start($args);
 }
 
 =item form_end()
@@ -338,15 +339,15 @@ A C<default> attribute is never created.
 =cut
 
 sub text{
-  my($self,%args)=@_;
-  my $type=delete $args{type} || 'text';
-  my $name=delete $args{name};
+  my($self,$args)=&_args;
+  my $type=delete $args->{type} || 'text';
+  my $name=delete $args->{name};
   my $value;
-  if(exists $args{value}){
-    $value=delete $args{value};
-    delete $args{default};
+  if(exists $args->{value}){
+    $value=delete $args->{value};
+    delete $args->{default};
   }else{
-    $value=delete $args{default};
+    $value=delete $args->{default};
     $value=$self->{req}->param($name) if $self->{params};
   }
 
@@ -355,7 +356,7 @@ sub text{
   _escape($value);
 
   my $field=qq(<input type="$type" name="$name" value="$value");
-  while(my($key,$val)=each %args){
+  while(my($key,$val)=each %$args){
     _escape($key);
     _escape($val);
     $field.=qq( $key="$val");
@@ -371,8 +372,9 @@ As text(), but produces an input element of type C<hidden>.
 =cut
 
 sub hidden{
-  my $self=shift;
-  $self->text(@_,type => 'hidden');
+  my($self,$args)=&_args;
+  $args->{type}||='hidden';
+  $self->text($args);
 }
 
 =item password(PAIRLIST)
@@ -382,8 +384,9 @@ As text(), but produces an input element of type C<password>.
 =cut
 
 sub password{
-  my $self=shift;
-  $self->text(@_,type => 'password');
+  my($self,$args)=&_args;
+  $args->{type}||='password';
+  $self->text($args);
 }
 
 =item textarea(PAIRLIST)
@@ -404,14 +407,14 @@ A C<default> attribute is never created.
 =cut
 
 sub textarea{
-  my($self,%args)=@_;
-  my $name=delete $args{name};
+  my($self,$args)=&_args;
+  my $name=delete $args->{name};
   my $value;
-  if(exists $args{value}){
-    $value=delete $args{value};
-    delete $args{default};
+  if(exists $args->{value}){
+    $value=delete $args->{value};
+    delete $args->{default};
   }else{
-    $value=delete $args{default};
+    $value=delete $args->{default};
     $value=$self->{req}->param($name) if $self->{params};
   }
 
@@ -419,7 +422,7 @@ sub textarea{
   _escape($value);
 
   my $field=qq(<textarea name="$name");
-  while(my($key,$val)=each %args){
+  while(my($key,$val)=each %$args){
     _escape($key);
     _escape($val);
     $field.=qq( $key="$val");
@@ -450,15 +453,16 @@ true for the C<checked> attribute to be created.
 =cut
 
 sub checkbox{
-  my($self,%args)=@_;
-  my $name=delete $args{name};
-  my $value=delete $args{value};
+  my($self,$args)=&_args;
+  my $type=delete $args->{type} || 'checkbox';
+  my $name=delete $args->{name};
+  my $value=delete $args->{value};
   my $checked;
-  if(exists $args{checked}){
-    $checked=delete $args{checked};
-    delete $args{default};
+  if(exists $args->{checked}){
+    $checked=delete $args->{checked};
+    delete $args->{default};
   }else{
-    $checked=delete $args{default};
+    $checked=delete $args->{default};
     $value='' unless defined($value);
     $checked=grep $_ eq $value,$self->{req}->param($name) if $self->{params};
   }
@@ -466,9 +470,9 @@ sub checkbox{
   _escape($name);
   _escape($value);
 
-  my $field=qq(<input type="checkbox" name="$name" value="$value");
+  my $field=qq(<input type="$type" name="$name" value="$value");
   $field.=' checked="checked"' if $checked;
-  while(my($key,$val)=each %args){
+  while(my($key,$val)=each %$args){
     _escape($key);
     _escape($val);
     $field.=qq( $key="$val");
@@ -482,8 +486,10 @@ sub checkbox{
 Generates a group of C<checkbox> type C<E<lt>inputE<gt>> elements. If called in
 list context, returns a list of elements, otherwise a single string containing
 all tags. All arguments are used directly to generate attributes in each tag,
-except for those listed below. Unless otherwise stated, all names and values
-are HTML-escaped.
+except for those listed below. Arguments with scalar values result in that
+value being used for each element, whereas hashref values result in the value
+keyed by the element's C<value> attribute being used.
+Unless otherwise stated, all names and values are HTML-escaped.
 
 C<values>: An arrayref of values.
 One element will be generated for each element, in the order supplied.
@@ -516,38 +522,46 @@ C<values_as_labels> attribute.
 =cut
 
 sub checkbox_group{
-  my($self,%args)=@_;
-  my $type=delete $args{type} || 'checkbox';
-  my $name=delete $args{name};
-  my $labels=delete $args{labels} || {};
+  my($self,$args)=&_args;
+  my $type=delete $args->{type} || 'checkbox';
+  my $name=delete $args->{name};
+  my $labels=delete $args->{labels} || {};
   my $escape_labels=1;
-  $escape_labels=delete $args{escape_labels} if exists $args{escape_labels};
-  my $values=delete $args{values};
+  $escape_labels=delete $args->{escape_labels} if exists $args->{escape_labels};
+  my $values=delete $args->{values};
   $values||=[keys %$labels];
   my $checked=[];
-  if(exists $args{checked}){
-    $checked=delete $args{checked};
+  if(exists $args->{checked}){
+    $checked=delete $args->{checked};
     $checked=[$checked] if ref($checked) ne 'ARRAY';
-    delete $args{default};
+    delete $args->{default};
   }else{
-    if(exists $args{default}){
-      $checked=delete $args{default};
+    if(exists $args->{default}){
+      $checked=delete $args->{default};
       $checked=[$checked] if ref($checked) ne 'ARRAY';
     }
     $checked=[$self->{req}->param($name)] if $self->{params};
   }
-  my %checked=map +($_,1),@$checked;
-  my $br=delete $args{linebreak} ? "<br$self->{well_formed}>" : '';
+  my %checked=map +($_,'checked'),@$checked;
+  my $br=delete $args->{linebreak} ? "<br$self->{well_formed}>" : '';
   my $v_as_l=$self->{values_as_labels};
-  if(exists $args{values_as_labels}){
-    $v_as_l=delete $args{values_as_labels};
+  if(exists $args->{values_as_labels}){
+    $v_as_l=delete $args->{values_as_labels};
   }
 
   _escape($type);
   _escape($name);
 
   my $field=qq(<input type="$type" name="$name");
-  while(my($key,$val)=each %args){
+  my %per_value=(
+    checked => \%checked,
+    value => {map +($_,$_),@$values},
+  );
+  while(my($key,$val)=each %$args){
+    if($val && ref($val) eq 'HASH'){
+      $per_value{$key}=$val;
+      next;
+    }
     _escape($key);
     _escape($val);
     $field.=qq( $key="$val");
@@ -555,9 +569,14 @@ sub checkbox_group{
 
   my @checkboxes;
   for my $value(@$values){
-    _escape(my $evalue=$value);
-    my $field=qq($field value="$evalue");
-    $field.=' checked="checked"' if $checked{$value};
+    my $field=$field;
+    while(my($key,$hash)=each %per_value){
+      exists $hash->{$value}
+        or next;
+      _escape($key);
+      _escape(my $val=$hash->{$value});
+      $field.=qq( $key="$val");
+    }
     $field.="$self->{well_formed}>";
 
     if(exists $labels->{$value}){
@@ -565,6 +584,7 @@ sub checkbox_group{
       _escape($label) if $escape_labels;
       $field.=$label;
     }elsif($v_as_l){
+      _escape(my $evalue=$value);
       $field.=$evalue;
     }
     $field.=$br;
@@ -575,6 +595,18 @@ sub checkbox_group{
   return join '',@checkboxes;
 }
 
+=item radio(PAIRLIST)
+
+As radio_group(), but setting C<type> to C<radio>.
+
+=cut
+
+sub radio{
+  my($self,$args)=&_args;
+  $args->{type}||='radio';
+  $self->checkbox($args);
+}
+
 =item radio_group(PAIRLIST)
 
 As checkbox_group(), but setting C<type> to C<radio>.
@@ -582,12 +614,12 @@ As checkbox_group(), but setting C<type> to C<radio>.
 =cut
 
 sub radio_group{
-  my $self=shift;
-
-  $self->checkbox_group(@_,type => 'radio');
+  my($self,$args)=&_args;
+  $args->{type}||='radio';
+  $self->checkbox_group($args);
 }
 
-=item select(%args)
+=item select(PAIRLIST)
 
 Generates a C<E<lt>selectE<gt>> element. All arguments are used directly to
 generate attributes in the C<E<lt>selectE<gt>> element, except for those listed below. Unless otherwise stated, all names and values are HTML-escaped.
@@ -618,30 +650,30 @@ This is of little value, since it's the default behaviour of HTML in any case.
 =cut
 
 sub select{
-  my($self,%args)=@_;
-  my $name=delete $args{name};
-  my $multiple=delete $args{multiple};
-  my $labels=delete $args{labels} || {};
-  my $values=delete $args{values} || [keys %$labels];
+  my($self,$args)=_args(@_);
+  my $name=delete $args->{name};
+  my $multiple=delete $args->{multiple};
+  my $labels=delete $args->{labels} || {};
+  my $values=delete $args->{values} || [keys %$labels];
   my $selected;
-  if(exists $args{selected}){
-    $selected=delete $args{selected};
-    delete $args{default};
+  if(exists $args->{selected}){
+    $selected=delete $args->{selected};
+    delete $args->{default};
   }else{
-    $selected=delete $args{default};
+    $selected=delete $args->{default};
     $selected=[$self->{req}->param($name)] if $self->{params};
   }
   if(!defined $selected){ $selected=[]; }
   elsif(ref($selected) ne 'ARRAY'){ $selected=[$selected]; }
   my %selected=map +($_,1),@$selected;
   my $v_as_l=$self->{values_as_labels};
-  if(exists $args{values_as_labels}){
-    $v_as_l=delete $args{values_as_labels};
+  if(exists $args->{values_as_labels}){
+    $v_as_l=delete $args->{values_as_labels};
   }
 
   _escape($name);
   my $field=qq(<select name="$name");
-  while(my($key,$val)=each %args){
+  while(my($key,$val)=each %$args){
     _escape($key);
     _escape($val);
     $field.=qq( $key="$val");
@@ -678,11 +710,11 @@ fields are not sticky.
 =cut
 
 sub submit{
-  my($self,%args)=@_;
-  $args{type}='submit' unless exists $args{type};
+  my($self,$args)=_args(@_);
+  $args->{type}='submit' unless exists $args->{type};
 
   my $field='<input';
-  while(my($key,$val)=each %args){
+  while(my($key,$val)=each %$args){
     _escape($key);
     _escape($val);
     $field.=qq( $key="$val");
@@ -721,6 +753,21 @@ sub _escape($){
   }
 }
 
+=item _args(@_)
+
+Work out which of the two argument passing conventions is being used, and
+return ($self,\%args). This essentially converts the public unrolled
+PAIRLIST arguments into a single hashref, as used by the internal
+interfaces.
+
+=cut
+
+sub _args{
+  my $self=shift;
+  my $args=ref($_[0]) ? {%{$_[0]}} : {@_};
+  ($self,$args);
+}
+
 
 =back
 
@@ -735,7 +782,7 @@ sub _escape($){
 
 =head1 AUTHOR
 
-Copyright (C) Institute of Physics Publishing 2000-2005
+Copyright (C) Institute of Physics Publishing 2000-2011
 
 	Peter Haworth <pmh@edison.ioppublishing.com>
 
