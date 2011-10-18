@@ -4,7 +4,7 @@ use warnings;
 
 
 
-use ExtUtils::MakeMaker 6.31;
+use ExtUtils::MakeMaker 6.30;
 
 
 
@@ -21,7 +21,7 @@ my %WriteMakefileArgs = (
     'blib' => '0'
   },
   'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31'
+    'ExtUtils::MakeMaker' => '6.30'
   },
   'DISTNAME' => 'HTML-StickyForm',
   'EXE_FILES' => [],
@@ -30,7 +30,7 @@ my %WriteMakefileArgs = (
   'PREREQ_PM' => {
     'Carp' => '0'
   },
-  'VERSION' => '0.07_01',
+  'VERSION' => '0.07_02',
   'test' => {
     'TESTS' => 't/*.t t/lib/Test/XML/*.t'
   }

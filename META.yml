@@ -11,9 +11,9 @@ build_requires:
   XML::LibXML: 0
   blib: 0
 configure_requires:
-  ExtUtils::MakeMaker: 6.31
+  ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.200000, CPAN::Meta::Converter version 2.102400'
+generated_by: 'Dist::Zilla version 4.200009, CPAN::Meta::Converter version 2.110930'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -21,4 +21,4 @@ meta-spec:
 name: HTML-StickyForm
 requires:
   Carp: 0
-version: 0.07_01
+version: 0.07_02

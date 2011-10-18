@@ -25,7 +25,7 @@ available, but it is not appropriate to use L<CGI> or L<Apache::Request>.
 
 package HTML::StickyForm::RequestHash;
 BEGIN {
-  $HTML::StickyForm::RequestHash::VERSION = '0.07_01';
+  $HTML::StickyForm::RequestHash::VERSION = '0.07_02';
 }
 
 use strict;

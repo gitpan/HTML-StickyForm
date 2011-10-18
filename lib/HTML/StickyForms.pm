@@ -1,7 +1,7 @@
 
 package HTML::StickyForms;
 BEGIN {
-  $HTML::StickyForms::VERSION = '0.07_01';
+  $HTML::StickyForms::VERSION = '0.07_02';
 }
 use strict;
 use warnings;
