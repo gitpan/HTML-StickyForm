@@ -21,4 +21,4 @@ meta-spec:
 name: HTML-StickyForm
 requires:
   Carp: 0
-version: 0.07_02
+version: 0.08

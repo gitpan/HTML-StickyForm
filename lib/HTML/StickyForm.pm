@@ -72,7 +72,7 @@ consistent, and to keep the code size down to a minimum.
 
 package HTML::StickyForm;
 BEGIN {
-  $HTML::StickyForm::VERSION = '0.07_02';
+  $HTML::StickyForm::VERSION = '0.08';
 }
 use strict;
 use warnings;
@@ -621,8 +621,11 @@ sub radio_group{
 
 =item select(PAIRLIST)
 
-Generates a C<E<lt>selectE<gt>> element. All arguments are used directly to
-generate attributes in the C<E<lt>selectE<gt>> element, except for those listed below. Unless otherwise stated, all names and values are HTML-escaped.
+Generates a C<E<lt>selectE<gt>> element. Arguments starting with a dash
+are used directly to generate attributes in the C<E<lt>optionE<gt>> elements.
+All other arguments are used directly to
+generate attributes in the C<E<lt>selectE<gt>> element, except for those listed below.
+Unless otherwise stated, all names and values are HTML-escaped.
 
 C<values>: An arrayref of values and/or option groups.
 Scalar values are used directly to create C<E<lt>optionE<gt>> elements,
@@ -669,11 +672,18 @@ sub select{
   }
   if(!defined $selected){ $selected=[]; }
   elsif(ref($selected) ne 'ARRAY'){ $selected=[$selected]; }
-  my %selected=map +($_,1),@$selected;
+  my %selected=map +($_,'selected'),@$selected;
   my $v_as_l=$self->{values_as_labels};
   if(exists $args->{values_as_labels}){
     $v_as_l=delete $args->{values_as_labels};
   }
+
+  my %option_args;
+  for my $key(keys %$args){
+    (my $option_key=$key)=~s/\A-// or next;
+    $option_args{$option_key}=delete $args->{$key};
+  }
+  $option_args{selected}=\%selected;
 
   _escape($name);
   my $field=qq(<select name="$name");
@@ -685,7 +695,7 @@ sub select{
   $field.=' multiple="multiple"' if $multiple;
   $field.=">";
 
-  $field.=_select_options($values,\%selected,$labels,$v_as_l);
+  $field.=_select_options($values,\%option_args,$labels,$v_as_l);
   $field.="</select>";
 
   $field;
@@ -760,7 +770,7 @@ sub _args{
   ($self,$args);
 }
 
-=item _select_options(\@values,\%selected,\%labels,$values_as_labels)
+=item _select_options(\@values,\%option_args,\%labels,$values_as_labels)
 
 Returns an HTML fragment containing C<option> elements for the supplied
 list of option values. Values which are arrayrefs are used to represent
@@ -770,7 +780,7 @@ a hashref holding the group's attributes.
 =cut
 
 sub _select_options{
-  my($values,$selected,$labels,$v_as_l)=@_;
+  my($values,$option_args,$labels,$v_as_l)=@_;
   my $field='';
   for my $value(@$values){
     if(ref $value){
@@ -786,13 +796,20 @@ sub _select_options{
 	$field.=qq( $name="$value");
       }
       $field.='>';
-      $field.=_select_options(\@subvalues,$selected,$labels);
+      $field.=_select_options(\@subvalues,$option_args,$labels,$v_as_l);
       $field.='</optgroup>';
     }else{
       # Handle single option
       _escape(my $evalue=$value);
       $field.=qq(<option value="$evalue");
-      $field.=' selected="selected"' if $selected->{$value};
+      while(my($key,$val)=each %$option_args){
+        if(ref $val){
+	  defined($val=$val->{$value})
+	    or next;
+	}
+	_escape($val);
+	$field.=qq( $key="$val");
+      }
       $field.=">";
       if(exists $labels->{$value}){
 	my $label=$labels->{$value};

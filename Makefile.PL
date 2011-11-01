@@ -30,7 +30,7 @@ my %WriteMakefileArgs = (
   'PREREQ_PM' => {
     'Carp' => '0'
   },
-  'VERSION' => '0.07_02',
+  'VERSION' => '0.08',
   'test' => {
     'TESTS' => 't/*.t t/lib/Test/XML/*.t'
   }
